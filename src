@@ -1,0 +1,81 @@
+import sqlite3
+import matplotlib.pyplot as plt
+
+# Função para conectar ao banco de dados
+def connect_db():
+    conn = sqlite3.connect('biblioteca.db')
+    return conn
+
+# Função para gerar o gráfico de Livros Mais Emprestados
+def grafico_livros_mais_emprestados():
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute('''SELECT Livros.Titulo, COUNT(Emprestimos.LivroID) AS TotalEmprestimos
+                      FROM Emprestimos
+                      JOIN Livros ON Emprestimos.LivroID = Livros.LivroID
+                      GROUP BY Emprestimos.LivroID
+                      ORDER BY TotalEmprestimos DESC
+                      LIMIT 5''')
+    dados = cursor.fetchall()
+    conn.close()
+
+    # Separando os títulos e as contagens de empréstimos
+    titulos = [d[0] for d in dados]
+    total_emprestimos = [d[1] for d in dados]
+
+    # Gerando o gráfico de barras
+    plt.bar(titulos, total_emprestimos, color='blue')
+    plt.title('Livros Mais Emprestados')
+    plt.xlabel('Título do Livro')
+    plt.ylabel('Total de Empréstimos')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    plt.show()
+
+# Função para gerar o gráfico de pizza de Gêneros dos Livros
+def grafico_genero_livros():
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute('''SELECT Genero, COUNT(*) AS TotalLivros
+                      FROM Livros
+                      GROUP BY Genero''')
+    dados = cursor.fetchall()
+    conn.close()
+
+    # Separando os gêneros e as contagens de livros
+    generos = [d[0] for d in dados]
+    total_livros = [d[1] for d in dados]
+
+    # Gerando o gráfico de pizza
+    plt.pie(total_livros, labels=generos, autopct='%1.1f%%', startangle=140)
+    plt.title('Distribuição de Gêneros dos Livros')
+    plt.axis('equal')  # Garantir que o gráfico seja um círculo
+    plt.show()
+
+# Função para gerar o gráfico de barras de Autores por Nacionalidade
+def grafico_autores_nacionalidade():
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute('''SELECT Nacionalidade, COUNT(*) AS TotalAutores
+                      FROM Autores
+                      GROUP BY Nacionalidade''')
+    dados = cursor.fetchall()
+    conn.close()
+
+    # Separando as nacionalidades e as contagens de autores
+    nacionalidades = [d[0] for d in dados]
+    total_autores = [d[1] for d in dados]
+
+    # Gerando o gráfico de barras
+    plt.bar(nacionalidades, total_autores, color='green')
+    plt.title('Número de Autores por Nacionalidade')
+    plt.xlabel('Nacionalidade')
+    plt.ylabel('Total de Autores')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    plt.show()
+
+# Chamando as funções para gerar os gráficos
+grafico_livros_mais_emprestados()
+grafico_genero_livros()
+grafico_autores_nacionalidade()
